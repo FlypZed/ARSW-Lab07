@@ -10,6 +10,7 @@ var app = (function () {
     var stompClient = null;
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
+    var currentDrawingId = null;
 
     var addPointToCanvas = function (point) {
         ctx.beginPath();
@@ -25,14 +26,17 @@ var app = (function () {
         };
     };
 
-    var connectAndSubscribe = function () {
-        console.info('Connecting to WS...');
+    var connectAndSubscribe = function (drawingId) {
+        console.info('Connecting to WS for drawing ' + drawingId);
         var socket = new SockJS('/stompendpoint');
         stompClient = Stomp.over(socket);
 
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/newpoint', function (eventbody) {
+            currentDrawingId = drawingId;
+
+            // Subscribe to the specific drawing topic
+            stompClient.subscribe('/topic/newpoint.' + drawingId, function (eventbody) {
                 var point = JSON.parse(eventbody.body);
                 addPointToCanvas(point);
             });
@@ -41,6 +45,10 @@ var app = (function () {
 
     var setupCanvasEvents = function() {
         canvas.addEventListener("click", function(event) {
+            if (!stompClient || !currentDrawingId) {
+                alert("Please connect to a drawing first!");
+                return;
+            }
             var position = getMousePosition(event);
             app.publishPoint(position.x, position.y);
         });
@@ -49,21 +57,33 @@ var app = (function () {
     return {
         init: function () {
             setupCanvasEvents();
-            connectAndSubscribe();
+        },
+
+        connectToDrawing: function() {
+            var drawingId = document.getElementById("drawingId").value;
+            if (stompClient) {
+                this.disconnect();
+            }
+            connectAndSubscribe(drawingId);
         },
 
         publishPoint: function(px, py) {
             var pt = new Point(px, py);
-            console.info("publishing point at " + pt);
+            console.info("publishing point at " + pt + " to drawing " + currentDrawingId);
             addPointToCanvas(pt);
-            stompClient.send("/app/newpoint", {}, JSON.stringify(pt));
+            stompClient.send("/app/newpoint." + currentDrawingId, {}, JSON.stringify(pt));
         },
 
         disconnect: function () {
             if (stompClient !== null) {
                 stompClient.disconnect();
+                currentDrawingId = null;
             }
             console.log("Disconnected");
         }
     };
 })();
+
+window.onload = function() {
+    app.init();
+};

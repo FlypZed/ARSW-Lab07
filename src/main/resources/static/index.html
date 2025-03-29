@@ -7,7 +7,7 @@
     <script src="/webjars/jquery/jquery.min.js"></script>
     <script src="/webjars/sockjs-client/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/stomp.min.js"></script>
-    <script src="/app.js"></script>
+    <script src="/js/app.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,10 +42,18 @@
     <h1>Collaborative Paint</h1>
     <div class="controls">
         Drawing ID: <input type="number" id="drawingId" value="1" min="1">
-        <button onclick="app.connectToDrawing()">Connect</button>
-        <button onclick="app.disconnect()">Disconnect</button>
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn">Disconnect</button>
     </div>
     <canvas id="canvas" width="800" height="600"></canvas>
 </div>
+<script>
+    document.getElementById('connectBtn').addEventListener('click', function() {
+        app.connectToDrawing();
+    });
+    document.getElementById('disconnectBtn').addEventListener('click', function() {
+        app.disconnect();
+    });
+</script>
 </body>
 </html>

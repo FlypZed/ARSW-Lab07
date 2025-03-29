@@ -1,5 +1,4 @@
 var app = (function () {
-
     class Point {
         constructor(x, y) {
             this.x = x;
@@ -11,6 +10,7 @@ var app = (function () {
     var canvas = document.getElementById("canvas");
     var ctx = canvas.getContext("2d");
     var currentDrawingId = null;
+    var connected = false;
 
     var addPointToCanvas = function (point) {
         ctx.beginPath();
@@ -49,9 +49,15 @@ var app = (function () {
         var socket = new SockJS('/stompendpoint');
         stompClient = Stomp.over(socket);
 
+        // Mostrar logs de depuración
+        stompClient.debug = function(str) {
+            console.log(str);
+        };
+
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
             currentDrawingId = drawingId;
+            connected = true;
             clearCanvas();
 
             // Subscribe to points topic
@@ -65,12 +71,15 @@ var app = (function () {
                 var points = JSON.parse(eventbody.body);
                 drawPolygon(points);
             });
+        }, function(error) {
+            console.error('Connection error: ' + error);
+            alert('Could not connect to WebSocket server. Please refresh and try again.');
         });
     };
 
     var setupCanvasEvents = function() {
         canvas.addEventListener("click", function(event) {
-            if (!stompClient || !currentDrawingId) {
+            if (!connected) {
                 alert("Please connect to a drawing first!");
                 return;
             }
@@ -86,13 +95,20 @@ var app = (function () {
 
         connectToDrawing: function() {
             var drawingId = document.getElementById("drawingId").value;
-            if (stompClient) {
+            if (!drawingId) {
+                alert("Please enter a drawing ID");
+                return;
+            }
+
+            if (stompClient && connected) {
                 this.disconnect();
             }
             connectAndSubscribe(drawingId);
         },
 
         publishPoint: function(px, py) {
+            if (!connected) return;
+
             var pt = new Point(px, py);
             console.info("publishing point at " + pt + " to drawing " + currentDrawingId);
             addPointToCanvas(pt);
@@ -103,6 +119,7 @@ var app = (function () {
             if (stompClient !== null) {
                 stompClient.disconnect();
                 currentDrawingId = null;
+                connected = false;
             }
             console.log("Disconnected");
         }

@@ -1,38 +1,37 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Collaborative Paint</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="/webjars/jquery/jquery.min.js"></script>
-        <script src="/webjars/sockjs-client/sockjs.min.js"></script>
-        <script src="/webjars/stomp-websocket/stomp.min.js"></script>
-        <script src="/app.js"></script>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-            }
-            canvas {
-                border: 1px solid #000;
-                margin-top: 10px;
-            }
-            .input-group {
-                margin-bottom: 10px;
-            }
-            button {
-                padding: 5px 10px;
-                cursor: pointer;
-            }
-        </style>
-    </head>
-    <body onload="app.init()">
-        <h1>Collaborative Paint</h1>
-        <div class="input-group">
-            X:<input id="x" type="number"/>
-            Y:<input id="y" type="number"/>        
-            <button onclick="app.publishPoint($('#x').val(),$('#y').val())">Send point</button>
-        </div>
-        <canvas id="canvas" width="800" height="600"></canvas>
-    </body>
+<head>
+    <title>Collaborative Paint</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/webjars/jquery/jquery.min.js"></script>
+    <script src="/webjars/sockjs-client/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/stomp.min.js"></script>
+    <script src="/app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        canvas {
+            border: 1px solid #000;
+            margin-top: 10px;
+            cursor: crosshair;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body onload="app.init()">
+<div class="container">
+    <h1>Collaborative Paint</h1>
+    <p>Click on the canvas to draw points. All connected clients will see your points.</p>
+    <canvas id="canvas" width="800" height="600"></canvas>
+</div>
+</body>
 </html>

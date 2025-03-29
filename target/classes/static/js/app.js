@@ -18,6 +18,24 @@ var app = (function () {
         ctx.stroke();
     };
 
+    var drawPolygon = function(points) {
+        if (points.length < 3) return;
+
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+
+        for (var i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+
+        ctx.closePath();
+        ctx.stroke();
+    };
+
+    var clearCanvas = function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
     var getMousePosition = function (evt) {
         var rect = canvas.getBoundingClientRect();
         return {
@@ -34,11 +52,18 @@ var app = (function () {
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
             currentDrawingId = drawingId;
+            clearCanvas();
 
-            // Subscribe to the specific drawing topic
+            // Subscribe to points topic
             stompClient.subscribe('/topic/newpoint.' + drawingId, function (eventbody) {
                 var point = JSON.parse(eventbody.body);
                 addPointToCanvas(point);
+            });
+
+            // Subscribe to polygons topic
+            stompClient.subscribe('/topic/newpolygon.' + drawingId, function (eventbody) {
+                var points = JSON.parse(eventbody.body);
+                drawPolygon(points);
             });
         });
     };
